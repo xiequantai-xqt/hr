@@ -110,7 +110,10 @@ export default {
     },
     // 登录
     async handleLogin() {
+      await this.$refs.loginForm.validate()
       await this.$store.dispatch('user/getTokenAsync', this.loginForm)
+      this.$message.success('登录成功')
+      this.$router.push('/')
     }
   }
 }
