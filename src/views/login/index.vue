@@ -63,7 +63,7 @@ export default {
     return {
       loginForm: {
         // 02是管理员账号
-        mobile: '13800000003',
+        mobile: '13800000002',
         password: '123456'
       },
       loginRules: {
@@ -82,6 +82,8 @@ export default {
       immediate: true
     }
   },
+  created() {
+  },
   methods: {
     showPwd() {
       if (this.passwordType === 'password') {
@@ -95,7 +97,7 @@ export default {
     },
     // 登录
     async handleLogin() {
-
+      await this.$store.dispatch('user/getTokenAsync', this.loginForm)
     }
   }
 }
