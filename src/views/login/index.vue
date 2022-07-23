@@ -1,6 +1,13 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
+    <el-form
+      ref="loginForm"
+      :model="loginForm"
+      :rules="loginRules"
+      class="login-form"
+      auto-complete="on"
+      label-position="left"
+    >
 
       <!-- 放置标题图片 @是设置的别名-->
       <div class="title-container">
@@ -67,7 +74,13 @@ export default {
         password: '123456'
       },
       loginRules: {
-
+        mobile: [
+          { required: true, message: '此项为必填项', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '此项为必填项', trigger: 'blur' },
+          { min: 2, max: 9, message: '长度在 2 到 9 个字符', trigger: 'blur' }
+        ]
       },
       loading: false,
       passwordType: 'password',

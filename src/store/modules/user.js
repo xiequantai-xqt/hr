@@ -1,14 +1,19 @@
 import { getTokenAPI } from '@/api/user'
+import { setTokenCookie, getTokenCookie } from '@/utils/auth'
 
 const state = {
-  token: ''
+  token: getTokenCookie() || ''
 }
-const mutations = {}
+const mutations = {
+  setToken(state, data) {
+    state.token = data
+    setTokenCookie(data)
+  }
+}
 const actions = {
   async getTokenAsync(store, data) {
     const res = await getTokenAPI(data)
-    console.log(data)
-    console.log(res)
+    store.commit('setToken', res.data)
   }
 }
 export default {
