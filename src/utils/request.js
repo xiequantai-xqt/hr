@@ -1,3 +1,4 @@
+import store from '@/store'
 import axios from 'axios'
 
 // create an axios instance
@@ -10,6 +11,9 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   config => {
+    if (store.state.user.token) {
+      config.headers.Authorization = `Bearer ${store.state.user.token}`
+    }
     return config
   },
   error => {

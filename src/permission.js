@@ -1,11 +1,12 @@
 import router from './router'
 import store from './store'
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async(to, from, next) => {
   if (store.state.user.token) {
     if (to.path === '/login') {
       next('/')
     } else {
+      await store.dispatch('user/getProfileAsync')
       next()
     }
   } else {
