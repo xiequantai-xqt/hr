@@ -34,10 +34,15 @@ export default {
 }
 </script>
 
-<style scoped>
-.tree-card {
-  padding: 30px  140px;
-  font-size:14px;
+<style lang="scss" scoped>
+.dashboard-container{
+  .app-container{
+    .tree-card {
+      padding: 30px  140px;
+      font-size:14px;
+    }
+  }
 }
+
 </style>
 
