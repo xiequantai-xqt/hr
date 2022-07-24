@@ -42,6 +42,14 @@ Vue.use(Element, {
 Object.keys(filters).forEach(key => {
   Vue.filter(key, filters[key])
 })
+// 自定义指令处理错误图片
+Vue.directive('fixImg', {
+  inserted(el, { value }) {
+    el.addEventListener('error', () => {
+      el.src = value
+    })
+  }
+})
 
 Vue.config.productionTip = false
 
