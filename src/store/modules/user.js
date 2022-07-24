@@ -1,5 +1,5 @@
 import { getTokenAPI, getUserBaseInfoAPI, getUserProfileAPI } from '@/api/user'
-import { setTokenCookie, getTokenCookie } from '@/utils/auth'
+import { setTokenCookie, getTokenCookie, removeTokenCookie } from '@/utils/auth'
 
 const state = {
   token: getTokenCookie() || '',
@@ -12,6 +12,11 @@ const mutations = {
   },
   setProfile(state, profile) {
     state.profile = profile
+  },
+  logout(state) {
+    state.token = ''
+    state.profile = ''
+    removeTokenCookie()
   }
 }
 const actions = {
@@ -25,6 +30,9 @@ const actions = {
     const employeeRes = await getUserProfileAPI(baseInfo.userId)
     const employee = employeeRes.data
     store.commit('setProfile', { ...baseInfo, ...employee })
+  },
+  async logoutAsync(store) {
+    store.commit('logout')
   }
 }
 export default {
