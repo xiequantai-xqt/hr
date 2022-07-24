@@ -1,3 +1,4 @@
+import router from '@/router'
 import store from '@/store'
 import axios from 'axios'
 
@@ -28,6 +29,11 @@ service.interceptors.response.use(
     return res
   },
   error => {
+    console.log('error', error)
+    if (error.response && error.response.data.code === 10002) {
+      store.dispatch('user/logoutAsync')
+      router.push('/login')
+    }
     return Promise.reject(error)
   }
 )
