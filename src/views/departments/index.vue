@@ -7,11 +7,16 @@
         <hr>
         <el-tree :data="depts" :props="{label:'name'}">
           <template #default="{data}">
-            <TreeTools :node-data="data" @updateDep="getDepartment" />
+            <TreeTools
+              :node-data="data"
+              @updateDep="getDepartment"
+              @toggleAddDialog="toggleAddDialogFn"
+            />
           </template>
         </el-tree>
       </el-card>
     </div>
+    <AddDept :add-dept-dialog="addDeptDialog" @toggleAddDialog="toggleAddDialogFn" />
   </div>
 </template>
 
@@ -19,11 +24,13 @@
 import { getDepartmentListAPI } from '@/api/departments'
 import TreeTools from './components/tree-tools.vue'
 import { dataToTree } from '@/utils'
+import AddDept from './components/add-dept.vue'
 export default {
-  components: { TreeTools },
+  components: { TreeTools, AddDept },
   data() {
     return {
-      depts: []
+      depts: [],
+      addDeptDialog: false // 新增部门弹窗
     }
   },
   created() {
@@ -35,6 +42,9 @@ export default {
       const { depts } = deptsRes.data
       const deptsFlat = depts.filter(item => item.pid !== '-1')
       this.depts = dataToTree(deptsFlat, '')
+    },
+    toggleAddDialogFn(value) {
+      this.addDeptDialog = value
     }
   }
 }

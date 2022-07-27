@@ -9,7 +9,7 @@
           <el-dropdown>
             <span>操作<i class="el-icon-arrow-drwn" /></span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>添加子部门</el-dropdown-item>
+              <el-dropdown-item @click.native="addDeptFn">添加子部门</el-dropdown-item>
               <el-dropdown-item>查看部门</el-dropdown-item>
               <el-dropdown-item @click.native="delDepartmentFn(nodeData.id)">删除部门</el-dropdown-item>
             </el-dropdown-menu>
@@ -40,6 +40,9 @@ export default {
       await this.$confirm('是否删除')
       await delDepartmentAPI(id)
       this.$emit('updateDep')
+    },
+    addDeptFn() {
+      this.$emit('toggleAddDialog', true)
     }
   }
 }
