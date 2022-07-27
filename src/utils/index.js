@@ -355,3 +355,13 @@ export function removeClass(ele, cls) {
     ele.className = ele.className.replace(reg, ' ')
   }
 }
+export function dataToTree(data, pid) {
+  const arr = []
+  data.forEach(item => {
+    if (item.pid === pid) {
+      item.children = dataToTree(data, item.id)
+      arr.push(item)
+    }
+  })
+  return arr
+}
