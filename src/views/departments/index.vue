@@ -7,7 +7,7 @@
         <hr>
         <el-tree :data="depts" :props="{label:'name'}">
           <template #default="{data}">
-            <TreeTools :node-data="{data}" />
+            <TreeTools :node-data="data" />
           </template>
         </el-tree>
       </el-card>

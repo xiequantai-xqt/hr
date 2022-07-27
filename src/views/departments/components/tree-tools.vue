@@ -1,10 +1,9 @@
 <template>
   <el-row type="flex" align="middle" style="height: 40px;width: 100%;">
-    <!-- <el-col>江苏传智播客教育科技股份有限公司</el-col> -->
-    <el-col>{{ nodeData.data?nodeData.data.name:nodeData.name }}</el-col>
+    <el-col>{{ nodeData.name }}</el-col>
     <el-col :span="4">
       <el-row type="flex" justify="end">
-        <el-col>{{ nodeData.data?nodeData.data.manager:nodeData.manger }}</el-col>
+        <el-col>{{ nodeData.manager }}</el-col>
         <el-col>
           <!-- 下拉菜单，也可以添加属性trigger="click"，就是点击后显示 -->
           <el-dropdown>
@@ -30,7 +29,7 @@ export default {
       default: () => {
         return {
           name: '江苏传智播客教育科技股份有限公司',
-          manger: '负责人'
+          manager: '负责人'
         }
       }
     }
