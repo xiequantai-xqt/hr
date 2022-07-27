@@ -21,3 +21,10 @@ export function getUserBaseInfoAPI() {
     method: 'post'
   })
 }
+// 获取员工列表
+export function getEmployeeListAPI(params) {
+  return request({
+    url: `/sys/user`,
+    params
+  })
+}

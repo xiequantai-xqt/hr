@@ -11,12 +11,18 @@
               :node-data="data"
               @updateDep="getDepartment"
               @toggleAddDialog="toggleAddDialogFn"
+              @passPid="passPidFn"
             />
           </template>
         </el-tree>
       </el-card>
     </div>
-    <AddDept :add-dept-dialog="addDeptDialog" @toggleAddDialog="toggleAddDialogFn" />
+    <AddDept
+      :add-dept-dialog="addDeptDialog"
+      :pid-id="pidId"
+      @toggleAddDialog="toggleAddDialogFn"
+      @updateDep="getDepartment"
+    />
   </div>
 </template>
 
@@ -30,7 +36,8 @@ export default {
   data() {
     return {
       depts: [],
-      addDeptDialog: false // 新增部门弹窗
+      addDeptDialog: false, // 新增部门弹窗
+      pidId: ''
     }
   },
   created() {
@@ -45,6 +52,9 @@ export default {
     },
     toggleAddDialogFn(value) {
       this.addDeptDialog = value
+    },
+    passPidFn(pid) {
+      this.pidId = pid
     }
   }
 }
