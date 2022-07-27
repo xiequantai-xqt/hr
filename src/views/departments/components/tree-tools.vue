@@ -11,7 +11,7 @@
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>添加子部门</el-dropdown-item>
               <el-dropdown-item>查看部门</el-dropdown-item>
-              <el-dropdown-item>删除部门</el-dropdown-item>
+              <el-dropdown-item @click.native="delDepartmentFn(nodeData.id)">删除部门</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </el-col>
@@ -21,6 +21,7 @@
 </template>
 
 <script>
+import { delDepartmentAPI } from '@/api/departments'
 export default {
   props: {
     nodeData: {
@@ -32,6 +33,13 @@ export default {
           manager: '负责人'
         }
       }
+    }
+  },
+  methods: {
+    async delDepartmentFn(id) {
+      await this.$confirm('是否删除')
+      await delDepartmentAPI(id)
+      this.$emit('updateDep')
     }
   }
 }

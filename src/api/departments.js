@@ -6,3 +6,10 @@ export function getDepartmentListAPI() {
     url: `/company/department`
   })
 }
+// 删除部门
+export function delDepartmentAPI(id) {
+  return request({
+    url: `/company/department/${id}`,
+    method: 'delete'
+  })
+}
