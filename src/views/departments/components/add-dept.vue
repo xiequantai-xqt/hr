@@ -76,7 +76,11 @@ export default {
     },
     async submitFn() {
       await this.$refs.addDept.validate()
-      await addDepartmentAPI({ ...this.formData, pid: this.pidId })
+      if (this.pidId) {
+        await addDepartmentAPI({ ...this.formData, pid: this.pidId })
+      } else {
+        await addDepartmentAPI({ ...this.formData, pid: '' })
+      }
       this.$message.success('新增成功')
       this.$emit('toggleAddDialog', false)
       this.$emit('updateDep')

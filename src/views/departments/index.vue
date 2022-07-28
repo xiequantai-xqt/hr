@@ -3,12 +3,13 @@
     <div class="app-container">
       <el-card class="tree-card">
         <!-- 用一个行列布局 -->
-        <TreeTools />
+        <TreeTools @toggleAddDialog="toggleAddDialogFn" />
         <hr>
         <el-tree :data="depts" :props="{label:'name'}">
           <template #default="{data}">
             <TreeTools
               :node-data="data"
+              :is-company="isCompany"
               @updateDep="getDepartment"
               @toggleAddDialog="toggleAddDialogFn"
               @passPid="passPidFn"
@@ -37,7 +38,8 @@ export default {
     return {
       depts: [],
       addDeptDialog: false, // 新增部门弹窗
-      pidId: ''
+      pidId: '',
+      isCompany: false
     }
   },
   created() {
