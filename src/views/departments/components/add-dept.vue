@@ -30,18 +30,43 @@
 
 <script>
 import { getEmployeeListAPI } from '@/api/user'
-import { addDepartmentAPI } from '@/api/departments'
+import { addDepartmentAPI, getDepartmentListAPI } from '@/api/departments'
+import { dataToTree } from '@/utils'
 export default {
   props: {
     addDeptDialog: {
       type: Boolean
     },
-    // eslint-disable-next-line vue/require-default-prop
-    pidId: {
-      type: String
-    }
+    // eslint-disable-next-line vue/require-default-prop, vue/require-prop-types
+    nodeData: {}
   },
   data() {
+    // 同部门下，子部门不能重名
+    const validateName = async(rule, value, callback) => {
+      const res = await getDepartmentListAPI()
+      const { depts } = res.data
+      const deptsFlat = depts.filter(item => item.pid !== '-1')
+      this.depts = dataToTree(deptsFlat, '')
+      const childrenDepts = this.depts.find(item => item.id === this.nodeData.id).children
+      const isRepeat = childrenDepts.some(i => i.name === value)
+      if (isRepeat) {
+        callback(new Error('该部门名称已被占用'))
+      } else {
+        callback()
+      }
+    }
+    // 全集团的code不能重复
+    const validateCode = async(rule, value, callback) => {
+      // 获取全集团的扁平化数据
+      const res = await getDepartmentListAPI()
+      const { depts } = res.data
+      const isRepeat = depts.some(item => item.code === value)
+      if (isRepeat) {
+        callback(new Error('全集团编码保证唯一性'))
+      } else {
+        callback()
+      }
+    }
     return {
       formData: {
         code: '',
@@ -50,9 +75,11 @@ export default {
         name: ''
       },
       employeeList: [], // 员工列表信息
+      depts: [],
       rules: {
         code: [
-          { required: true, message: '此项不能为空', trigger: 'blur' }
+          { required: true, message: '此项不能为空', trigger: 'blur' },
+          { validator: validateCode, trigger: 'blur' }
         ],
         introduce: [
           { required: true, message: '此项不能为空', trigger: 'blur' }
@@ -62,7 +89,8 @@ export default {
         ],
         name: [
           { required: true, message: '此项不能为空', trigger: 'blur' },
-          { min: 2, max: 10, message: '部门名称为2-10个字符', trigger: 'blur' }
+          { min: 2, max: 10, message: '部门名称为2-10个字符', trigger: 'blur' },
+          { validator: validateName, trigger: 'blur' }
         ]
       }
     }
@@ -71,16 +99,19 @@ export default {
     this.getEmployeeList()
   },
   methods: {
-    cancleFn() {
+    async cancleFn() {
+      await this.$refs.addDept.resetFields()
+      this.formData = {
+        code: '',
+        introduce: '',
+        manager: '',
+        name: ''
+      }
       this.$emit('toggleAddDialog', false)
     },
     async submitFn() {
       await this.$refs.addDept.validate()
-      if (this.pidId) {
-        await addDepartmentAPI({ ...this.formData, pid: this.pidId })
-      } else {
-        await addDepartmentAPI({ ...this.formData, pid: '' })
-      }
+      await addDepartmentAPI({ ...this.formData, pid: this.nodeData.id })
       this.$message.success('新增成功')
       this.$emit('toggleAddDialog', false)
       this.$emit('updateDep')

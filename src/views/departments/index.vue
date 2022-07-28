@@ -5,14 +5,14 @@
         <!-- 用一个行列布局 -->
         <TreeTools @toggleAddDialog="toggleAddDialogFn" />
         <hr>
-        <el-tree :data="depts" :props="{label:'name'}">
+        <el-tree :data="depts" :props="{label:'name'}" :default-expand-all="true">
           <template #default="{data}">
             <TreeTools
               :node-data="data"
-              :is-company="isCompany"
+              :is-company="true"
               @updateDep="getDepartment"
               @toggleAddDialog="toggleAddDialogFn"
-              @passPid="passPidFn"
+              @passNodeData="passNodeDataFn"
             />
           </template>
         </el-tree>
@@ -20,7 +20,7 @@
     </div>
     <AddDept
       :add-dept-dialog="addDeptDialog"
-      :pid-id="pidId"
+      :node-data="nodeData"
       @toggleAddDialog="toggleAddDialogFn"
       @updateDep="getDepartment"
     />
@@ -38,8 +38,7 @@ export default {
     return {
       depts: [],
       addDeptDialog: false, // 新增部门弹窗
-      pidId: '',
-      isCompany: false
+      nodeData: ''
     }
   },
   created() {
@@ -55,8 +54,8 @@ export default {
     toggleAddDialogFn(value) {
       this.addDeptDialog = value
     },
-    passPidFn(pid) {
-      this.pidId = pid
+    passNodeDataFn(nodeData) {
+      this.nodeData = nodeData
     }
   }
 }
