@@ -30,7 +30,7 @@
 
 <script>
 import { getEmployeeListAPI } from '@/api/user'
-import { addDepartmentAPI, getDepartmentListAPI } from '@/api/departments'
+import { addDepartmentAPI, getDepartmentListAPI, getDeptDetailByIdAPI, updateDeptAPI } from '@/api/departments'
 import { dataToTree } from '@/utils'
 export default {
   props: {
@@ -111,8 +111,14 @@ export default {
     },
     async submitFn() {
       await this.$refs.addDept.validate()
-      await addDepartmentAPI({ ...this.formData, pid: this.nodeData.id })
-      this.$message.success('新增成功')
+      if (this.nodeData.id) {
+        // 编辑
+        await updateDeptAPI({ ...this.formData })
+      } else {
+        // 增加
+        await addDepartmentAPI({ ...this.formData, pid: this.nodeData.id })
+        this.$message.success('新增成功')
+      }
       this.$emit('toggleAddDialog', false)
       this.$emit('updateDep')
     },
@@ -124,6 +130,10 @@ export default {
       setTimeout(() => {
         this.$refs.addDept.validateField('manager')
       }, 500)
+    },
+    async getDeptDetailFn(id) {
+      const res = await getDeptDetailByIdAPI(id)
+      this.formData = res.data
     }
   }
 }

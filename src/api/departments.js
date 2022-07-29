@@ -21,3 +21,17 @@ export function addDepartmentAPI(data) {
     data
   })
 }
+// 根据id获取部门详情
+export function getDeptDetailByIdAPI(id) {
+  return request({
+    url: `/company/department/${id}`
+  })
+}
+// 根据id修改部门详情
+export function updateDeptAPI(data) {
+  return request({
+    url: `/company/department/${data.id}`,
+    method: 'put',
+    data
+  })
+}

@@ -10,7 +10,7 @@
             <span>操作<i class="el-icon-arrow-drwn" /></span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item @click.native="addDeptFn(nodeData)">添加子部门</el-dropdown-item>
-              <el-dropdown-item v-if="isCompany">查看部门</el-dropdown-item>
+              <el-dropdown-item v-if="isCompany" @click.native="editDeptFn(nodeData)">查看部门</el-dropdown-item>
               <el-dropdown-item v-if="isCompany" @click.native="delDepartmentFn(nodeData.id)">删除部门</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -48,6 +48,10 @@ export default {
     addDeptFn(nodeData) {
       this.$emit('toggleAddDialog', true)
       this.$emit('passNodeData', nodeData)
+    },
+    editDeptFn(nodeData) {
+      this.$emit('passNodeData', nodeData)
+      this.$emit('editDept')
     }
   }
 }

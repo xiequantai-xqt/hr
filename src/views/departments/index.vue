@@ -13,12 +13,14 @@
               @updateDep="getDepartment"
               @toggleAddDialog="toggleAddDialogFn"
               @passNodeData="passNodeDataFn"
+              @editDept="editDeptFn"
             />
           </template>
         </el-tree>
       </el-card>
     </div>
     <AddDept
+      ref="addDept"
       :add-dept-dialog="addDeptDialog"
       :node-data="nodeData"
       @toggleAddDialog="toggleAddDialogFn"
@@ -56,6 +58,11 @@ export default {
     },
     passNodeDataFn(nodeData) {
       this.nodeData = nodeData
+    },
+    editDeptFn() {
+      this.addDeptDialog = true
+      // 回显
+      this.$refs.addDept.getDeptDetailFn(this.nodeData.id)
     }
   }
 }
