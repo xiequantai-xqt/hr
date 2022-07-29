@@ -19,10 +19,10 @@
               <el-table-column label="角色名称" width="240" prop="name" />
               <el-table-column label="描述" prop="description" />
               <el-table-column label="操作">
-                <template>
+                <template #default="{row}">
                   <el-button size="small" type="success">分配权限</el-button>
                   <el-button size="small" type="primary">编辑</el-button>
-                  <el-button size="small" type="danger">删除</el-button>
+                  <el-button size="small" type="danger" @click="delRoleFn(row.id)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -67,7 +67,7 @@
 </template>
 
 <script>
-import { getRoleListAPI } from '@/api/setting'
+import { delRoleAPI, getRoleListAPI } from '@/api/setting'
 export default {
   data() {
     return {
@@ -90,6 +90,11 @@ export default {
     },
     currentPageFn(page) {
       this.pageSetting = { ...this.pageSetting, page }
+      this.getRoleList(this.pageSetting)
+    },
+    async delRoleFn(id) {
+      await this.$confirm('确定要删除该角色吗？')
+      await delRoleAPI(id)
       this.getRoleList(this.pageSetting)
     }
   }

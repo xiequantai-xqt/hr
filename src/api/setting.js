@@ -7,3 +7,10 @@ export function getRoleListAPI(params) {
     params
   })
 }
+// 删除角色
+export function delRoleAPI(id) {
+  return request({
+    url: `/sys/role/${id}`,
+    method: 'delete'
+  })
+}
