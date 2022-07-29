@@ -29,7 +29,12 @@
             <!-- 分页组件 -->
             <el-row type="flex" justify="center" align="middle" style="height: 60px">
               <!-- 分页组件 -->
-              <el-pagination layout="prev,pager,next" />
+              <el-pagination
+                layout="prev,pager,next"
+                :total="total"
+                :page-size="pageSetting.pagesize"
+                @current-change="currentPageFn"
+              />
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="公司信息">
@@ -68,21 +73,24 @@ export default {
     return {
       pageSetting: {
         page: 1,
-        pagesize: 10
+        pagesize: 2
       },
       total: 0,
       roleList: []
     }
   },
   created() {
-    this.getRoleList()
+    this.getRoleList(this.pageSetting)
   },
   methods: {
-    async getRoleList() {
-      const res = await getRoleListAPI({ ...this.pageSetting })
-      console.log(res.data)
+    async getRoleList(pageSetting) {
+      const res = await getRoleListAPI(pageSetting)
       this.total = res.data.total
       this.roleList = res.data.rows
+    },
+    currentPageFn(page) {
+      this.pageSetting = { ...this.pageSetting, page }
+      this.getRoleList(this.pageSetting)
     }
   }
 }
