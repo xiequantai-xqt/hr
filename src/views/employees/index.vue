@@ -32,7 +32,12 @@
         </el-table>
         <!-- 分页组件 -->
         <el-row type="flex" justify="center" align="middle" style="height: 60px">
-          <el-pagination layout="prev, pager, next" />
+          <el-pagination
+            layout="prev, pager, next"
+            :total="total"
+            :page-size="pagesetting.size"
+            @current-change="currentPageFn"
+          />
         </el-row>
       </el-card>
     </div>
@@ -53,14 +58,17 @@ export default {
     }
   },
   created() {
-    this.getEmployeeList()
+    this.getEmployeeList(this.pagesetting)
   },
   methods: {
-    async getEmployeeList() {
-      const res = await getEmployeeListAPI()
-      console.log(res.data)
+    async getEmployeeList(pagesetting) {
+      const res = await getEmployeeListAPI(pagesetting)
       this.total = res.data.total
       this.employeeList = res.data.rows
+    },
+    currentPageFn(page) {
+      this.pagesetting = { ...this.pagesetting, page }
+      this.getEmployeeList(this.pagesetting)
     }
   }
 }
