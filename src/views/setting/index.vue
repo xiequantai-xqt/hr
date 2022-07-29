@@ -14,14 +14,16 @@
               >新增角色</el-button>
             </el-row>
             <!-- 表格 -->
-            <el-table border="">
-              <el-table-column label="序号" width="120" />
-              <el-table-column label="角色名称" width="240" />
-              <el-table-column label="描述" />
+            <el-table border="" :data="roleList">
+              <el-table-column label="序号" width="120" type="index" />
+              <el-table-column label="角色名称" width="240" prop="name" />
+              <el-table-column label="描述" prop="description" />
               <el-table-column label="操作">
-                <el-button size="small" type="success">分配权限</el-button>
-                <el-button size="small" type="primary">编辑</el-button>
-                <el-button size="small" type="danger">删除</el-button>
+                <template>
+                  <el-button size="small" type="success">分配权限</el-button>
+                  <el-button size="small" type="primary">编辑</el-button>
+                  <el-button size="small" type="danger">删除</el-button>
+                </template>
               </el-table-column>
             </el-table>
             <!-- 分页组件 -->
@@ -58,3 +60,30 @@
     </div>
   </div>
 </template>
+
+<script>
+import { getRoleListAPI } from '@/api/setting'
+export default {
+  data() {
+    return {
+      pageSetting: {
+        page: 1,
+        pagesize: 10
+      },
+      total: 0,
+      roleList: []
+    }
+  },
+  created() {
+    this.getRoleList()
+  },
+  methods: {
+    async getRoleList() {
+      const res = await getRoleListAPI({ ...this.pageSetting })
+      console.log(res.data)
+      this.total = res.data.total
+      this.roleList = res.data.rows
+    }
+  }
+}
+</script>
