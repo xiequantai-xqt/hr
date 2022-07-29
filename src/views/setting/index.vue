@@ -11,6 +11,7 @@
                 icon="el-icon-plus"
                 size="small"
                 type="primary"
+                @click="addRoleFn"
               >新增角色</el-button>
             </el-row>
             <!-- 表格 -->
@@ -59,15 +60,28 @@
               </el-form-item>
             </el-form>
           </el-tab-pane>
-
         </el-tabs>
       </el-card>
     </div>
+    <el-dialog title="新增角色" :visible="addRoleDialog" @close="onCancle">
+      <el-form ref="addRole" :model="formData" label-width="120px" :rules="rules">
+        <el-form-item label="角色名称" prop="name">
+          <el-input v-model="formData.name" />
+        </el-form-item>
+        <el-form-item label="角色描述">
+          <el-input v-model="formData.description" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="onCancle">取 消</el-button>
+        <el-button type="primary" @click="onOk">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { delRoleAPI, getRoleListAPI } from '@/api/setting'
+import { addRoleAPI, delRoleAPI, getRoleListAPI } from '@/api/setting'
 export default {
   data() {
     return {
@@ -76,7 +90,17 @@ export default {
         pagesize: 2
       },
       total: 0,
-      roleList: []
+      roleList: [],
+      addRoleDialog: false, // 新增角色弹窗
+      formData: {
+        name: '',
+        description: ''
+      },
+      rules: {
+        name: [
+          { required: true, message: '角色名称不能为空', trigger: 'blur' }
+        ]
+      }
     }
   },
   created() {
@@ -96,6 +120,24 @@ export default {
       await this.$confirm('确定要删除该角色吗？')
       await delRoleAPI(id)
       this.getRoleList(this.pageSetting)
+    },
+    async addRoleFn() {
+      this.addRoleDialog = true
+    },
+    async onOk() {
+      await this.$refs.addRole.validate()
+      await addRoleAPI(this.formData)
+      this.addRoleDialog = false
+      this.$message.success('新增角色成功')
+      this.getRoleList(this.pageSetting)
+    },
+    async onCancle() {
+      await this.$refs.addRole.resetFields()
+      this.formData = {
+        name: '',
+        description: ''
+      }
+      this.addRoleDialog = false
     }
   }
 }

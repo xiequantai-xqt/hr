@@ -14,3 +14,11 @@ export function delRoleAPI(id) {
     method: 'delete'
   })
 }
+// 新增角色
+export function addRoleAPI(data) {
+  return request({
+    url: `/sys/role`,
+    method: 'post',
+    data
+  })
+}
