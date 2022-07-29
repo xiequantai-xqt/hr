@@ -82,8 +82,6 @@ export default {
       let isRepeat
       if (this.nodeData.id) {
         // 编辑
-        console.log(depts)
-        console.log(this.nodeData.id)
         isRepeat = depts.some(item => item.code === value && item.id !== this.nodeData.id)
       } else {
         isRepeat = depts.some(item => item.code === value)
