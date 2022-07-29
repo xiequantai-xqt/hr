@@ -47,8 +47,22 @@ export default {
       const { depts } = res.data
       const deptsFlat = depts.filter(item => item.pid !== '-1')
       this.depts = dataToTree(deptsFlat, '')
-      const childrenDepts = this.depts.find(item => item.id === this.nodeData.id).children
-      const isRepeat = childrenDepts.some(i => i.name === value)
+      let isRepeat
+      if (this.nodeData.id) {
+        // 编辑
+        const parDepts = []
+        for (let i = 0; i < deptsFlat.length; i++) {
+          if (deptsFlat[i].pid === this.nodeData.pid) {
+            parDepts.push(deptsFlat[i])
+          }
+        }
+        isRepeat = parDepts.some(i => i.name === value && i.code !== this.nodeData.code)
+      } else {
+        // 新增
+        const childrenDepts = this.depts.find(item => item.id === this.nodeData.id).children
+        isRepeat = childrenDepts.some(i => i.name === value)
+      }
+
       if (isRepeat) {
         callback(new Error('该部门名称已被占用'))
       } else {
