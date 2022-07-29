@@ -30,7 +30,12 @@
 
 <script>
 import { getEmployeeListAPI } from '@/api/user'
-import { addDepartmentAPI, getDepartmentListAPI, getDeptDetailByIdAPI, updateDeptAPI } from '@/api/departments'
+import {
+  addDepartmentAPI,
+  getDepartmentListAPI,
+  getDeptDetailByIdAPI,
+  updateDeptAPI
+} from '@/api/departments'
 import { dataToTree } from '@/utils'
 export default {
   props: {
@@ -74,7 +79,15 @@ export default {
       // 获取全集团的扁平化数据
       const res = await getDepartmentListAPI()
       const { depts } = res.data
-      const isRepeat = depts.some(item => item.code === value)
+      let isRepeat
+      if (this.nodeData.id) {
+        // 编辑
+        console.log(depts)
+        console.log(this.nodeData.id)
+        isRepeat = depts.some(item => item.code === value && item.id !== this.nodeData.id)
+      } else {
+        isRepeat = depts.some(item => item.code === value)
+      }
       if (isRepeat) {
         callback(new Error('全集团编码保证唯一性'))
       } else {
