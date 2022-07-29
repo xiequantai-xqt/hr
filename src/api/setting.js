@@ -22,3 +22,17 @@ export function addRoleAPI(data) {
     data
   })
 }
+// 获取角色详情
+export function getRoleDetailAPI(id) {
+  return request({
+    url: `/sys/role/${id}`
+  })
+}
+// 编辑角色
+export function updateRoleAPI(data) {
+  return request({
+    url: `/sys/role/${data.id}`,
+    method: 'put',
+    data
+  })
+}

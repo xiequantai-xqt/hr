@@ -22,7 +22,7 @@
               <el-table-column label="操作">
                 <template #default="{row}">
                   <el-button size="small" type="success">分配权限</el-button>
-                  <el-button size="small" type="primary">编辑</el-button>
+                  <el-button size="small" type="primary" @click="editRoleFn(row.id)">编辑</el-button>
                   <el-button size="small" type="danger" @click="delRoleFn(row.id)">删除</el-button>
                 </template>
               </el-table-column>
@@ -81,7 +81,7 @@
 </template>
 
 <script>
-import { addRoleAPI, delRoleAPI, getRoleListAPI } from '@/api/setting'
+import { addRoleAPI, delRoleAPI, getRoleDetailAPI, getRoleListAPI, updateRoleAPI } from '@/api/setting'
 export default {
   data() {
     return {
@@ -126,9 +126,16 @@ export default {
     },
     async onOk() {
       await this.$refs.addRole.validate()
-      await addRoleAPI(this.formData)
+      if (this.formData.id) {
+        // 编辑
+        await updateRoleAPI(this.formData)
+        this.$message.success('编辑角色成功')
+      } else {
+        // 新增
+        await addRoleAPI(this.formData)
+        this.$message.success('新增角色成功')
+      }
       this.addRoleDialog = false
-      this.$message.success('新增角色成功')
       this.getRoleList(this.pageSetting)
     },
     async onCancle() {
@@ -138,6 +145,12 @@ export default {
         description: ''
       }
       this.addRoleDialog = false
+    },
+    // 编辑角色
+    async editRoleFn(id) {
+      this.addRoleDialog = true
+      const res = await getRoleDetailAPI(id)
+      this.formData = res.data
     }
   }
 }
