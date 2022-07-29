@@ -52,6 +52,8 @@ Vue.directive('fixImg', {
 })
 
 Vue.config.productionTip = false
+import MyComponents from '@/components'
+Vue.use(MyComponents)
 
 new Vue({
   el: '#app',
