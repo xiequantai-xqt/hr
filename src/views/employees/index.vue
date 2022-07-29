@@ -2,7 +2,7 @@
   <div class="dashboard-container">
     <div class="app-container">
       <PageTools :show-before="true">
-        <span slot="before">共166条记录</span>
+        <span slot="before">共{{ total }}条记录</span>
         <template slot="after">
           <el-button size="small" type="warning">导入</el-button>
           <el-button size="small" type="danger">导出</el-button>
@@ -11,14 +11,14 @@
       </PageTools>
       <!-- 放置表格和分页 -->
       <el-card>
-        <el-table border>
-          <el-table-column label="序号" sortable="" />
-          <el-table-column label="姓名" sortable="" />
-          <el-table-column label="工号" sortable="" />
-          <el-table-column label="聘用形式" sortable="" />
-          <el-table-column label="部门" sortable="" />
-          <el-table-column label="入职时间" sortable="" />
-          <el-table-column label="账户状态" sortable="" />
+        <el-table border :data="employeeList">
+          <el-table-column label="序号" sortable="" type="index" />
+          <el-table-column label="姓名" sortable="" prop="username" />
+          <el-table-column label="工号" sortable="" prop="workNumber" />
+          <el-table-column label="聘用形式" sortable="" prop="formOfEmployment" />
+          <el-table-column label="部门" sortable="" prop="departmentName" />
+          <el-table-column label="入职时间" sortable="" prop="timeOfEntry" />
+          <el-table-column label="账户状态" sortable="" prop="enableState" />
           <el-table-column label="操作" sortable="" fixed="right" width="280">
             <template>
               <el-button type="text" size="small">查看</el-button>
@@ -38,3 +38,30 @@
     </div>
   </div>
 </template>
+
+<script>
+import { getEmployeeListAPI } from '@/api/user'
+export default {
+  data() {
+    return {
+      pagesetting: {
+        page: 1,
+        size: 10
+      },
+      total: 0,
+      employeeList: []
+    }
+  },
+  created() {
+    this.getEmployeeList()
+  },
+  methods: {
+    async getEmployeeList() {
+      const res = await getEmployeeListAPI()
+      console.log(res.data)
+      this.total = res.data.total
+      this.employeeList = res.data.rows
+    }
+  }
+}
+</script>

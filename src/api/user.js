@@ -14,7 +14,7 @@ export function getUserProfileAPI(id) {
     url: `/sys/user/${id}`
   })
 }
-// 获取用户基本资料（userId）
+// 获取员工基本资料（userId）
 export function getUserBaseInfoAPI() {
   return request({
     url: `/sys/profile`,
