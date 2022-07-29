@@ -15,7 +15,7 @@
           <el-table-column label="序号" sortable="" type="index" />
           <el-table-column label="姓名" sortable="" prop="username" />
           <el-table-column label="工号" sortable="" prop="workNumber" />
-          <el-table-column label="聘用形式" sortable="" prop="formOfEmployment" />
+          <el-table-column label="聘用形式" sortable="" prop="formOfEmployment" :formatter="formatterFn" />
           <el-table-column label="部门" sortable="" prop="departmentName" />
           <el-table-column label="入职时间" sortable="" prop="timeOfEntry" />
           <el-table-column label="账户状态" sortable="" prop="enableState" />
@@ -69,6 +69,29 @@ export default {
     currentPageFn(page) {
       this.pagesetting = { ...this.pagesetting, page }
       this.getEmployeeList(this.pagesetting)
+    },
+    // 格式化聘用形式
+    formatterFn(row) {
+      const hireType = [
+        {
+          type: '1',
+          value: '正式'
+        },
+        {
+          type: '2',
+          value: '非正式'
+        }
+      ]
+      if (!row.formOfEmployment) {
+        return ''
+      } else {
+        const hireItem = hireType.find(item => item.type === row.formOfEmployment)
+        if (hireItem) {
+          return hireItem.value
+        } else {
+          return row.formOfEmployment
+        }
+      }
     }
   }
 }
