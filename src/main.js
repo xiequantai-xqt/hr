@@ -54,6 +54,11 @@ Vue.directive('fixImg', {
 Vue.config.productionTip = false
 import MyComponents from '@/components'
 Vue.use(MyComponents)
+// 全局注册过滤器
+Vue.filter('filterTime', (value) => {
+  return value.split('T')[0]
+})
+// oldValue.split('T')[0]
 
 new Vue({
   el: '#app',
