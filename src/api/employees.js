@@ -8,3 +8,11 @@ export function addEmployeesBatchAPI(data) {
     data
   })
 }
+// 新增单个员工
+export function addEmployeesAPI(data) {
+  return request({
+    url: `/sys/user`,
+    method: 'post',
+    data
+  })
+}

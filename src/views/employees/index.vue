@@ -6,7 +6,7 @@
         <template slot="after">
           <el-button size="small" type="warning" @click="()=>$router.push('/import')">导入</el-button>
           <el-button size="small" type="danger" @click="exportExcel">导出</el-button>
-          <el-button size="small" type="primary">新增员工</el-button>
+          <el-button size="small" type="primary" @click="addEmployeeFn">新增员工</el-button>
         </template>
       </PageTools>
       <!-- 放置表格和分页 -->
@@ -55,12 +55,71 @@
         </el-row>
       </el-card>
     </div>
+    <el-dialog title="新增员工" :visible="addEmployeeDialog">
+      <el-form :model="formData" label-width="120px" :rules="rules">
+        <el-form-item label="姓名" prop="username">
+          <el-input v-model="formData.username" />
+        </el-form-item>
+        <el-form-item label="手机号" prop="mobile">
+          <el-input v-model="formData.mobile" />
+        </el-form-item>
+        <el-form-item label="入职时间" prop="timeOfEntry">
+          <el-date-picker
+            v-model="formData.timeOfEntry"
+            type="date"
+            placeholder="选择日期"
+            style="width:100%"
+          />
+        </el-form-item>
+        <el-form-item label="聘用形式" prop="formOfEmployment">
+          <el-select v-model="formData.formOfEmployment" placeholder="请选择" style="width:100%">
+            <el-option
+              v-for="item in hireType"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="工号" prop="workNumber">
+          <el-input v-model="formData.workNumber" />
+        </el-form-item>
+        <el-form-item label="部门" prop="departmentName">
+          <el-input
+            v-model="formData.departmentName"
+            @focus="isShowTree='block'"
+            @blur="treeBlurFn"
+          />
+          <el-tree
+            :data="depts"
+            :props="{label:'name'}"
+            :default-expand-all="true"
+            :style="{display:isShowTree}"
+            @node-click="handleNodeClick"
+          />
+        </el-form-item>
+        <el-form-item label="转正时间">
+          <el-date-picker
+            v-model="formData.correctionTime"
+            type="date"
+            placeholder="选择日期"
+            style="width:100%"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button>取 消</el-button>
+        <el-button type="primary">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getEmployeeListAPI } from '@/api/user'
 import { export_json_to_excel } from '@/vendor/Export2Excel'
+import { getDepartmentListAPI } from '@/api/departments'
+import { dataToTree } from '@/utils'
 export default {
   data() {
     return {
@@ -69,11 +128,54 @@ export default {
         size: 10
       },
       total: 0,
-      employeeList: []
+      employeeList: [],
+      addEmployeeDialog: false, // 新增员工弹窗
+      formData: {
+        username: '',
+        mobile: '',
+        formOfEmployment: '',
+        workNumber: '',
+        departmentName: '',
+        timeOfEntry: '', // 入职时间
+        correctionTime: '' // 转正时间
+      },
+      hireType: [
+        {
+          value: '正式',
+          label: '正式'
+        },
+        {
+          value: '非正式',
+          label: '非正式'
+        }
+      ],
+      depts: [], // 部门
+      isShowTree: 'none', // 部门树展开
+      rules: {
+        username: [
+          { required: true, message: '名称不能为空', trigger: 'blur' }
+        ],
+        mobile: [
+          { required: true, message: '手机号不能为空', trigger: 'blur' }
+        ],
+        formOfEmployment: [
+          { required: true, message: '聘用形式不能为空', trigger: 'blur' }
+        ],
+        workNumber: [
+          { required: true, message: '工号不能为空', trigger: 'blur' }
+        ],
+        departmentName: [
+          { required: true, message: '部门名称不能为空', trigger: 'blur' }
+        ],
+        timeOfEntry: [
+          { required: true, message: '入职时间不能为空', trigger: 'blur' }
+        ]
+      }
     }
   },
   created() {
     this.getEmployeeList(this.pagesetting)
+    this.getDepartment()
   },
   methods: {
     async getEmployeeList(pagesetting) {
@@ -108,6 +210,7 @@ export default {
         }
       }
     },
+    // 导出Excel
     async exportExcel() {
       const res = await getEmployeeListAPI({ ...this.pagesetting, size: this.total })
       const headers = []
@@ -132,7 +235,35 @@ export default {
         return arr
       })
       export_json_to_excel({ header: headers, data })
+    },
+    // 新增员工
+    addEmployeeFn() {
+      this.addEmployeeDialog = true
+    },
+    // 获取部门列表
+    async getDepartment() {
+      const deptsRes = await getDepartmentListAPI()
+      const { depts } = deptsRes.data
+      const deptsFlat = depts.filter(item => item.pid !== '-1')
+      this.depts = dataToTree(deptsFlat, '')
+      console.log(this.depts)
+    },
+    handleNodeClick(data) {
+      this.formData = { ...this.formData, departmentName: data.name }
+    },
+    treeBlurFn() {
+      setTimeout(() => {
+        this.isShowTree = 'none'
+      }, 500)
     }
   }
 }
 </script>
+
+<style scoped lang="scss">
+::v-deep{
+.el-tree{
+  margin-top: 5px;
+}
+}
+</style>
