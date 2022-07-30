@@ -16,3 +16,10 @@ export function addEmployeesAPI(data) {
     data
   })
 }
+// 删除员工
+export function delEmployeesAPI(id) {
+  return request({
+    url: `/sys/user/${id}`,
+    method: 'delete'
+  })
+}

@@ -34,13 +34,13 @@
             </template>
           </el-table-column>
           <el-table-column label="操作" sortable="" fixed="right" width="280">
-            <template>
+            <template #default="{row}">
               <el-button type="text" size="small">查看</el-button>
               <el-button type="text" size="small">转正</el-button>
               <el-button type="text" size="small">调岗</el-button>
               <el-button type="text" size="small">离职</el-button>
               <el-button type="text" size="small">角色</el-button>
-              <el-button type="text" size="small">删除</el-button>
+              <el-button type="text" size="small" @click="delEmployeeFn(row.id)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -120,7 +120,7 @@ import { getEmployeeListAPI } from '@/api/user'
 import { export_json_to_excel } from '@/vendor/Export2Excel'
 import { getDepartmentListAPI } from '@/api/departments'
 import { dataToTree } from '@/utils'
-import { addEmployeesAPI } from '@/api/employees'
+import { addEmployeesAPI, delEmployeesAPI } from '@/api/employees'
 export default {
   data() {
     return {
@@ -275,6 +275,13 @@ export default {
         correctionTime: '' // 转正时间
       }
       this.addEmployeeDialog = false
+    },
+    // 删除
+    async delEmployeeFn(id) {
+      await this.$confirm('是否删除该员工？')
+      await delEmployeesAPI(id)
+      this.$message.success('删除成功')
+      this.getEmployeeList(this.pagesetting)
     }
   }
 }
