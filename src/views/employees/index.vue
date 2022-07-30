@@ -5,7 +5,7 @@
         <span slot="before">共{{ total }}条记录</span>
         <template slot="after">
           <el-button size="small" type="warning" @click="()=>$router.push('/import')">导入</el-button>
-          <el-button size="small" type="danger">导出</el-button>
+          <el-button size="small" type="danger" @click="exportExcel">导出</el-button>
           <el-button size="small" type="primary">新增员工</el-button>
         </template>
       </PageTools>
@@ -60,6 +60,7 @@
 
 <script>
 import { getEmployeeListAPI } from '@/api/user'
+import { export_json_to_excel } from '@/vendor/Export2Excel'
 export default {
   data() {
     return {
@@ -106,6 +107,31 @@ export default {
           return row.formOfEmployment
         }
       }
+    },
+    async exportExcel() {
+      const res = await getEmployeeListAPI({ ...this.pagesetting, size: this.total })
+      const headers = []
+      const { rows } = res.data
+      const dic = {
+        'timeOfEntry': '入职日期',
+        'username': '姓名',
+        'workNumber': '工号',
+        'mobile': '手机号',
+        'correctionTime': '转正日期',
+        'formOfEmployment': '聘用形式',
+        'departmentName': '组织名称'
+      }
+      for (const header in dic) {
+        headers.push(dic[header])
+      }
+      const data = rows.map(item => {
+        const arr = []
+        for (const key in dic) {
+          arr.push(item[key])
+        }
+        return arr
+      })
+      export_json_to_excel({ header: headers, data })
     }
   }
 }
