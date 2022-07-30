@@ -55,8 +55,8 @@
         </el-row>
       </el-card>
     </div>
-    <el-dialog title="新增员工" :visible="addEmployeeDialog">
-      <el-form :model="formData" label-width="120px" :rules="rules">
+    <el-dialog title="新增员工" :visible="addEmployeeDialog" @close="onCancle">
+      <el-form ref="addEmployee" :model="formData" label-width="120px" :rules="rules">
         <el-form-item label="姓名" prop="username">
           <el-input v-model="formData.username" />
         </el-form-item>
@@ -108,8 +108,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button>取 消</el-button>
-        <el-button type="primary">确 定</el-button>
+        <el-button @click="onCancle">取 消</el-button>
+        <el-button type="primary" @click="onOk">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -120,6 +120,7 @@ import { getEmployeeListAPI } from '@/api/user'
 import { export_json_to_excel } from '@/vendor/Export2Excel'
 import { getDepartmentListAPI } from '@/api/departments'
 import { dataToTree } from '@/utils'
+import { addEmployeesAPI } from '@/api/employees'
 export default {
   data() {
     return {
@@ -141,11 +142,11 @@ export default {
       },
       hireType: [
         {
-          value: '正式',
+          value: '1',
           label: '正式'
         },
         {
-          value: '非正式',
+          value: '2',
           label: '非正式'
         }
       ],
@@ -246,7 +247,6 @@ export default {
       const { depts } = deptsRes.data
       const deptsFlat = depts.filter(item => item.pid !== '-1')
       this.depts = dataToTree(deptsFlat, '')
-      console.log(this.depts)
     },
     handleNodeClick(data) {
       this.formData = { ...this.formData, departmentName: data.name }
@@ -255,6 +255,26 @@ export default {
       setTimeout(() => {
         this.isShowTree = 'none'
       }, 500)
+    },
+    async onOk() {
+      await this.$refs.addEmployee.validate()
+      await addEmployeesAPI(this.formData)
+      this.$message.success('新增成功')
+      this.addEmployeeDialog = false
+      this.getEmployeeList(this.pagesetting)
+    },
+    onCancle() {
+      this.$refs.addEmployee.resetFields()
+      this.formData = {
+        username: '',
+        mobile: '',
+        formOfEmployment: '',
+        workNumber: '',
+        departmentName: '',
+        timeOfEntry: '', // 入职时间
+        correctionTime: '' // 转正时间
+      }
+      this.addEmployeeDialog = false
     }
   }
 }
