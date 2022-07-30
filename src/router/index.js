@@ -64,6 +64,16 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/import',
+    component: Layout,
+    children: [
+      {
+        path: '/import',
+        component: () => import('@/views/import/index')
+      }
+    ]
+  },
+  {
     path: '/404',
     component: () => import('@/views/404/index.vue'),
     hidden: true
