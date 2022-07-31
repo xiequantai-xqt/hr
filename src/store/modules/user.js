@@ -1,43 +1,53 @@
-import { getTokenAPI, getUserBaseInfoAPI, getUserProfileAPI } from '@/api/user'
-import { setTokenCookie, getTokenCookie, removeTokenCookie } from '@/utils/auth'
+import { getUserDetailById, getUserInfo, login } from '@/api/user'
+import { getToken, setToken, removeToken } from '@/utils/auth'
+import { resetRouter } from '@/router'
 
 const state = {
-  token: getTokenCookie() || '',
-  profile: ''
+  token: getToken() || '',
+  userInfo: {}
 }
 const mutations = {
   setToken(state, data) {
     state.token = data
-    setTokenCookie(data)
+    // token持久化
+    setToken(data)
   },
-  setProfile(state, profile) {
-    state.profile = profile
+  setUserInfo(state, data) {
+    state.userInfo = data
   },
-  logout(state) {
+  // 清除token
+  removeUserToken(state) {
     state.token = ''
-    state.profile = ''
-    removeTokenCookie()
+    removeToken()
+  },
+  // 清除userInfo
+  removeUserInfo(state) {
+    state.userInfo = {}
   }
 }
 const actions = {
-  async getTokenAsync(store, data) {
-    const res = await getTokenAPI(data)
-    store.commit('setToken', res.data)
+  // 登录
+  async login(store, data) {
+    const res = await login(data)
+    // 存储token
+    store.commit('setToken', res)
   },
-  async getProfileAsync(store) {
-    const baseInfoRes = await getUserBaseInfoAPI()
-    const baseInfo = baseInfoRes.data
-    const employeeRes = await getUserProfileAPI(baseInfo.userId)
-    const employee = employeeRes.data
-    store.commit('setProfile', { ...baseInfo, ...employee })
+  // 获取用户信息
+  async getUserInfo(store) {
+    const res = await getUserInfo()
+    const detail = await getUserDetailById(res.userId)
+    store.commit('setUserInfo', { ...res, ...detail })
   },
-  async logoutAsync(store) {
-    store.commit('logout')
+  // 登出
+  logout(store) {
+    store.commit('removeUserToken')
+    store.commit('removeUserInfo')
+    resetRouter()
   }
 }
 export default {
   namespaced: true,
   state,
-  mutations,
-  actions
+  mutations, // 注意，后面有个s
+  actions // 注意，同上
 }

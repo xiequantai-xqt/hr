@@ -1,12 +1,10 @@
 import Vue from 'vue'
 
-import Cookies from 'js-cookie'
+import 'normalize.css/normalize.css' // A modern alternative to CSS resets
 
-import 'normalize.css/normalize.css' // a modern alternative to CSS resets
-
-import Element from 'element-ui'
-import './styles/element-variables.scss'
-import enLang from 'element-ui/lib/locale/lang/en'// 如果使用中文语言包请默认支持，无需额外引入，请删除该依赖
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+// import locale from 'element-ui/lib/locale/lang/en' // lang i18n
 
 import '@/styles/index.scss' // global css
 
@@ -14,12 +12,11 @@ import App from './App'
 import store from './store'
 import router from './router'
 
-import './icons' // icon
-import './permission' // permission control
-import './utils/error-log' // error log
-
-import * as filters from './filters' // global filters
-
+import '@/icons' // icon
+import '@/permission' // permission control
+import MyComponents from '@/components'
+import * as myFilters from '@/filters'
+import i18n from '@/i18n'
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
@@ -33,36 +30,39 @@ import * as filters from './filters' // global filters
 //   mockXHR()
 // }
 
-Vue.use(Element, {
-  size: Cookies.get('size') || 'medium', // set element-ui default size
-  locale: enLang // 如果使用中文，无需设置，请删除
-})
-
-// register global utility filters
-Object.keys(filters).forEach(key => {
-  Vue.filter(key, filters[key])
-})
-// 自定义指令处理错误图片
-Vue.directive('fixImg', {
-  inserted(el, { value }) {
-    el.addEventListener('error', () => {
-      el.src = value
-    })
-  }
+// set ElementUI lang to EN
+// Vue.use(ElementUI, { locale })
+// 如果想要中文版 element-ui，按如下方式声明
+Vue.use(ElementUI, {
+  i18n: (key, value) => i18n.t(key, value)
 })
 
 Vue.config.productionTip = false
-import MyComponents from '@/components'
+Vue.directive('fixImg', {
+  inserted(el, options) {
+    el.addEventListener('error', () => {
+      el.src = options.value
+    })
+    el.src = el.src || options.value
+  },
+  componentUpdated(el, options) {
+    el.src = el.src || options.value
+  }
+})
+
 Vue.use(MyComponents)
 // 全局注册过滤器
-Vue.filter('filterTime', (value) => {
-  return value.split('T')[0]
-})
-// oldValue.split('T')[0]
+for (const key in myFilters) {
+  Vue.filter(key, myFilters[key])
+}
+// 全局混入
+import myMixin from '@/mixin'
+Vue.mixin(myMixin)
 
 new Vue({
   el: '#app',
   router,
   store,
+  i18n,
   render: h => h(App)
 })

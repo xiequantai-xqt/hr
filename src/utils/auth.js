@@ -1,15 +1,15 @@
 import Cookies from 'js-cookie'
 
-const TokenKey = 'hr_token'
+const TokenKey = 'hr-1'
 
-export function getTokenCookie() {
+export function getToken() {
   return Cookies.get(TokenKey)
 }
 
-export function setTokenCookie(token) {
+export function setToken(token) {
   return Cookies.set(TokenKey, token)
 }
 
-export function removeTokenCookie() {
+export function removeToken() {
   return Cookies.remove(TokenKey)
 }

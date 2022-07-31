@@ -1,5 +1,12 @@
 <template>
   <div class="job-info">
+    <el-row type="flex" justify="end">
+      <el-tooltip content="打印岗位信息">
+        <router-link :to="`/employees/print/${userId}?type=job`">
+          <i class="el-icon-printer" />
+        </router-link>
+      </el-tooltip>
+    </el-row>
     <!-- 基础信息 -->
     <el-form label-width="220px">
       <div class="block">
@@ -159,17 +166,32 @@
 </template>
 <script>
 import EmployeeEnum from '@/api/constant/employees.js'
+import { getEmployeeSimple, getJobDetail, updateJob } from '@/api/employee'
 
 export default {
   data() {
     return {
       EmployeeEnum,
       formData: {},
-      employees: []
+      employees: [],
+      userId: this.$route.params.id
     }
   },
+  created() {
+    this.getJob()
+    this.getEmployeeList()
+  },
   methods: {
-    saveJob() {}
+    async getJob() {
+      this.formData = await getJobDetail(this.userId)
+    },
+    async saveJob() {
+      await updateJob(this.formData)
+      this.$message.success('操作成功')
+    },
+    async getEmployeeList() {
+      this.employees = await getEmployeeSimple()
+    }
   }
 }
 </script>

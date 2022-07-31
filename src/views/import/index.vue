@@ -5,33 +5,50 @@
 </template>
 
 <script>
-import { addEmployeesBatchAPI } from '@/api/employees'
+import { importEmployee } from '@/api/employee'
+
 export default {
   methods: {
-    async onSuccess(content) {
-      // console.log('header', content.header)
-      // console.log('result', content.results)
-      const results = content.results.map(result => this.zhToEn(result))
-      await addEmployeesBatchAPI(results)
+    async onSuccess(data) {
+      const newData = data.results.map(user => this.zhToEn(user))
+      // 1. 发请求
+      await importEmployee(newData)
+      // 2. 提示用户
       this.$message.success('导入成功')
-      this.$router.push('/employees')
+      // 3. 回退到员工页面
+      this.$router.back()
     },
-    zhToEn(zhObj) {
-      const dic = {
+    zhToEn(oldUser) {
+      const newUser = {}
+      const userRelations = {
         '入职日期': 'timeOfEntry',
-        '姓名': 'username',
-        '工号': 'workNumber',
         '手机号': 'mobile',
+        '姓名': 'username',
         '转正日期': 'correctionTime',
-        '聘用形式': 'formOfEmployment',
-        '组织名称': 'departmentName'
+        '工号': 'workNumber'
       }
-      const result = {}
-      for (const index in zhObj) {
-        const key = dic[index]
-        result[key] = zhObj[index]
+      for (const key in oldUser) {
+        const userKey = userRelations[key]
+        if (userKey === 'timeOfEntry' || userKey === 'correctionTime') {
+          const userVal = this.formatDate(oldUser[key])
+          newUser[userKey] = userVal
+        } else {
+          const userVal = oldUser[key]
+          newUser[userKey] = userVal
+        }
       }
-      return result
+      return newUser
+    },
+    formatDate(numb, format = '-') {
+      const time = new Date((numb - 1) * 24 * 3600000 + 1)
+      time.setYear(time.getFullYear() - 70)
+      const year = time.getFullYear() + ''
+      const month = time.getMonth() + 1 + ''
+      const date = time.getDate() - 1 + ''
+      if (format && format.length === 1) {
+        return year + format + month + format + date
+      }
+      return year + (month < 10 ? '0' + month : month) + (date < 10 ? '0' + date : date)
     }
   }
 }

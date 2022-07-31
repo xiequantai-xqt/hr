@@ -1,5 +1,12 @@
 <template>
   <div class="user-info">
+    <el-row type="flex" justify="end">
+      <el-tooltip content="打印个人基本信息">
+        <router-link :to="`/employees/print/${userId}?type=personal`">
+          <i class="el-icon-printer" />
+        </router-link>
+      </el-tooltip>
+    </el-row>
     <!-- 个人信息 -->
     <el-form label-width="220px">
       <!-- 工号 入职时间 -->
@@ -58,7 +65,7 @@
         <el-col :span="12">
           <el-form-item label="员工头像">
             <!-- 放置上传图片 -->
-
+            <ImageUpload ref="employee_top" />
           </el-form-item>
         </el-col>
       </el-row>
@@ -89,6 +96,7 @@
         <!-- 员工照片 -->
 
         <el-form-item label="员工照片">
+          <ImageUpload ref="employee_buttom" />
           <!-- 放置上传图片 -->
         </el-form-item>
         <el-form-item label="国家/地区">
@@ -284,19 +292,63 @@
 
 <script>
 import EmployeeEnum from '@/api/constant/employees.js'
+import { getEmployeeInfoAPI, getPersonalDetail, saveEmployeeByIdAPI, updatePersonal } from '@/api/employee'
 export default {
   data() {
     return {
       EmployeeEnum,
       userInfo: {},
-      formData: {}
+      formData: {},
+      userId: this.$route.params.id
     }
   },
   created() {
+    this.getUser()
+    this.getPersonal()
   },
   methods: {
-    saveUser() {},
-    savePersonal() {}
+    // 用户的基本信息
+    async getUser() {
+      this.userInfo = await getEmployeeInfoAPI(this.userId)
+      if (this.userInfo.staffPhoto) {
+        this.$refs.employee_top.fileList = [
+          { url: this.userInfo.staffPhoto }
+        ]
+      }
+    },
+    async saveUser() {
+      const staffPhoto = this.$refs.employee_top.fileList[0] ? this.$refs.employee_top.fileList[0].url : ''
+      if (staffPhoto && this.$refs.employee_top.fileList[0].status !== 'success') {
+        this.$message.warning('请耐心等待')
+        return
+      }
+      await saveEmployeeByIdAPI({
+        ...this.userInfo,
+        staffPhoto
+      })
+      this.$message.success('修改成功')
+    },
+    // 用户的隐私信息
+    async getPersonal() {
+      this.formData = await getPersonalDetail(this.userId)
+      if (this.formData.staffPhoto) {
+        this.$refs.employee_buttom.fileList = [
+          { url: this.formData.staffPhoto }
+        ]
+      }
+    },
+    async savePersonal() {
+      const staffPhoto = this.$refs.employee_buttom.fileList[0] ? this.$refs.employee_buttom.fileList[0].url : ''
+      if (staffPhoto && this.$refs.employee_buttom.fileList[0].status !== 'success') {
+        this.$message.warning('请耐心等待')
+        return
+      }
+      await updatePersonal({
+        ...this.formData,
+        staffPhoto
+      })
+      this.$message.success('修改成功')
+    }
   }
 }
 </script>

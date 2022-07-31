@@ -4,33 +4,42 @@
       <PageTools :show-before="true">
         <span slot="before">共{{ total }}条记录</span>
         <template slot="after">
-          <el-button size="small" type="warning" @click="()=>$router.push('/import')">导入</el-button>
+          <el-button size="small" type="warning" @click="importExcel">导入</el-button>
           <el-button size="small" type="danger" @click="exportExcel">导出</el-button>
           <el-button size="small" type="primary" @click="addEmployeeFn">新增员工</el-button>
         </template>
       </PageTools>
       <!-- 放置表格和分页 -->
       <el-card>
-        <el-table border :data="employeeList">
+        <el-table border :data="formData">
           <el-table-column label="序号" sortable="" type="index" />
           <el-table-column label="姓名" sortable="" prop="username" />
+          <el-table-column label="头像" width="200">
+            <template #default="{row}">
+              <img
+                v-fixImg="require('@/assets/common/head.jpg')"
+                :src="row.staffPhoto"
+                class="staffPhoto"
+                @click="showEWMFn(row.staffPhoto)"
+              >
+            </template>
+          </el-table-column>
           <el-table-column label="工号" sortable="" prop="workNumber" />
           <el-table-column label="聘用形式" sortable="" prop="formOfEmployment" :formatter="formatterFn" />
           <el-table-column label="部门" sortable="" prop="departmentName" />
           <el-table-column label="入职时间" sortable="" prop="timeOfEntry">
             <template #default="{row}">
-              {{ row.timeOfEntry|filterTime }}
+              {{ row.correctionTime|formatDate }}
             </template>
           </el-table-column>
           <el-table-column label="账户状态" sortable="" prop="enableState">
             <template #default="{row}">
               <el-switch
-                :value="row.enableState"
+                v-model="row.enableState"
                 :active-value="1"
                 :inactive-value="2"
                 disabled
               />
-
             </template>
           </el-table-column>
           <el-table-column label="操作" sortable="" fixed="right" width="280">
@@ -39,258 +48,162 @@
               <el-button type="text" size="small">转正</el-button>
               <el-button type="text" size="small">调岗</el-button>
               <el-button type="text" size="small">离职</el-button>
-              <el-button type="text" size="small">角色</el-button>
-              <el-button type="text" size="small" @click="delEmployeeFn(row.id)">删除</el-button>
+              <el-button type="text" size="small" @click="assignRoleFn(row.id)">角色</el-button>
+              <el-button v-if="checkPerm('delUser')" type="text" size="small" @click="deleteEmployeeFn(row.id)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
         <!-- 分页组件 -->
         <el-row type="flex" justify="center" align="middle" style="height: 60px">
-          <el-pagination
-            layout="prev, pager, next"
-            :total="total"
-            :page-size="pagesetting.size"
-            @current-change="currentPageFn"
-          />
+          <el-pagination layout="prev, pager, next" :total="total" @current-change="currentChange" />
         </el-row>
       </el-card>
     </div>
-    <el-dialog title="新增员工" :visible="addEmployeeDialog" @close="onCancle">
-      <el-form ref="addEmployee" :model="formData" label-width="120px" :rules="rules">
-        <el-form-item label="姓名" prop="username">
-          <el-input v-model="formData.username" />
-        </el-form-item>
-        <el-form-item label="手机号" prop="mobile">
-          <el-input v-model="formData.mobile" />
-        </el-form-item>
-        <el-form-item label="入职时间" prop="timeOfEntry">
-          <el-date-picker
-            v-model="formData.timeOfEntry"
-            type="date"
-            placeholder="选择日期"
-            style="width:100%"
-          />
-        </el-form-item>
-        <el-form-item label="聘用形式" prop="formOfEmployment">
-          <el-select v-model="formData.formOfEmployment" placeholder="请选择" style="width:100%">
-            <el-option
-              v-for="item in hireType"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="工号" prop="workNumber">
-          <el-input v-model="formData.workNumber" />
-        </el-form-item>
-        <el-form-item label="部门" prop="departmentName">
-          <el-input
-            v-model="formData.departmentName"
-            @focus="isShowTree='block'"
-            @blur="treeBlurFn"
-          />
-          <el-tree
-            :data="depts"
-            :props="{label:'name'}"
-            :default-expand-all="true"
-            :style="{display:isShowTree}"
-            @node-click="handleNodeClick"
-          />
-        </el-form-item>
-        <el-form-item label="转正时间">
-          <el-date-picker
-            v-model="formData.correctionTime"
-            type="date"
-            placeholder="选择日期"
-            style="width:100%"
-          />
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="onCancle">取 消</el-button>
-        <el-button type="primary" @click="onOk">确 定</el-button>
-      </div>
+    <AddEmployee
+      :show-dialog="isShowDialog"
+      @closeDialog="closeDialogFn"
+      @updateEmployeeList="updateEmployeeListFn"
+    />
+    <el-dialog title="头像二维码" :visible="isShowEWM" @close="isShowEWM=false">
+      <canvas ref="qrcode" />
     </el-dialog>
+    <AssignRole
+      ref="assignRole"
+      :is-show-role="isShowRole"
+      @closeRoleDialog="closeRoleDialogFn"
+    />
   </div>
 </template>
 
 <script>
-import { getEmployeeListAPI } from '@/api/user'
-import { export_json_to_excel } from '@/vendor/Export2Excel'
-import { getDepartmentListAPI } from '@/api/departments'
-import { dataToTree } from '@/utils'
-import { addEmployeesAPI, delEmployeesAPI } from '@/api/employees'
+import { deleteEmployeeAPI, getEmployeeListAPI } from '@/api/employee'
+import EmployeeEnum from '@/api/constant/employees.js'
+import { export_json_to_excel } from '@/vendor/Export2Excel.js'
+import { formatDate } from '@/filters'
+import AddEmployee from '@/views/employees/components/add-employee.vue'
+import QRCode from 'qrcode'
+import AssignRole from './components/assign-role.vue'
+
 export default {
+  components: { AddEmployee, AssignRole },
   data() {
     return {
-      pagesetting: {
+      pageSetting: {
         page: 1,
         size: 10
       },
-      total: 0,
-      employeeList: [],
-      addEmployeeDialog: false, // 新增员工弹窗
-      formData: {
-        username: '',
-        mobile: '',
-        formOfEmployment: '',
-        workNumber: '',
-        departmentName: '',
-        timeOfEntry: '', // 入职时间
-        correctionTime: '' // 转正时间
-      },
-      hireType: [
-        {
-          value: '1',
-          label: '正式'
-        },
-        {
-          value: '2',
-          label: '非正式'
-        }
-      ],
-      depts: [], // 部门
-      isShowTree: 'none', // 部门树展开
-      rules: {
-        username: [
-          { required: true, message: '名称不能为空', trigger: 'blur' }
-        ],
-        mobile: [
-          { required: true, message: '手机号不能为空', trigger: 'blur' }
-        ],
-        formOfEmployment: [
-          { required: true, message: '聘用形式不能为空', trigger: 'blur' }
-        ],
-        workNumber: [
-          { required: true, message: '工号不能为空', trigger: 'blur' }
-        ],
-        departmentName: [
-          { required: true, message: '部门名称不能为空', trigger: 'blur' }
-        ],
-        timeOfEntry: [
-          { required: true, message: '入职时间不能为空', trigger: 'blur' }
-        ]
-      }
+      total: 10,
+      formData: [],
+      isShowDialog: false,
+      isShowEWM: false,
+      isShowRole: false // 设置角色
     }
   },
   created() {
-    this.getEmployeeList(this.pagesetting)
-    this.getDepartment()
+    this.getEmployeeList()
   },
   methods: {
-    async getEmployeeList(pagesetting) {
-      const res = await getEmployeeListAPI(pagesetting)
-      this.total = res.data.total
-      this.employeeList = res.data.rows
+    // 获取列表数据
+    async getEmployeeList() {
+      const res = await getEmployeeListAPI(this.pageSetting)
+      this.total = res.total
+      this.formData = res.rows
     },
-    currentPageFn(page) {
-      this.pagesetting = { ...this.pagesetting, page }
-      this.getEmployeeList(this.pagesetting)
+    // 翻页功能
+    currentChange(newPage) {
+      this.pageSetting.page = newPage
+      this.getEmployeeList()
     },
-    // 格式化聘用形式
-    formatterFn(row) {
-      const hireType = [
-        {
-          type: '1',
-          value: '正式'
-        },
-        {
-          type: '2',
-          value: '非正式'
-        }
-      ]
-      if (!row.formOfEmployment) {
-        return ''
-      } else {
-        const hireItem = hireType.find(item => item.type === String(row.formOfEmployment))
-        if (hireItem) {
-          return hireItem.value
-        } else {
-          return row.formOfEmployment
-        }
-      }
+    // 聘用形式格式化
+    formatterFn(row, column, cellValue, index) {
+      const obj = EmployeeEnum.hireType.find(i => i.id === cellValue)
+      return obj ? obj.value : ''
+    },
+    // 导入Excel
+    importExcel() {
+      this.$router.push('/import')
     },
     // 导出Excel
     async exportExcel() {
-      const res = await getEmployeeListAPI({ ...this.pagesetting, size: this.total })
-      const headers = []
-      const { rows } = res.data
-      const dic = {
-        'timeOfEntry': '入职日期',
-        'username': '姓名',
-        'workNumber': '工号',
-        'mobile': '手机号',
-        'correctionTime': '转正日期',
-        'formOfEmployment': '聘用形式',
-        'departmentName': '组织名称'
-      }
-      for (const header in dic) {
-        headers.push(dic[header])
-      }
-      const data = rows.map(item => {
-        const arr = []
-        for (const key in dic) {
-          arr.push(item[key])
-        }
-        return arr
+      // 1. 从服务器拿到包括所有用户数据的数组
+      const { rows } = await getEmployeeListAPI({ page: 1, size: this.total })
+      const newRows = rows.map(userInfo => this.objToArrFn(userInfo))
+      // 2. 通过数组转换成Excel
+      export_json_to_excel({
+        header: ['手机号', '姓名', '入职日期', '聘用形式', '转正日期', '工号', '部门'],
+        data: newRows
       })
-      export_json_to_excel({ header: headers, data })
+    },
+    // 数据转换-第一次
+    objToArrFn(obj) {
+      const arr = []
+      const dictionary = {
+        '手机号': 'mobile',
+        '姓名': 'username',
+        '入职日期': 'timeOfEntry',
+        '聘用形式': 'formOfEmployment',
+        '转正日期': 'correctionTime',
+        '工号': 'workNumber',
+        '部门': 'departmentName'
+      }
+      for (const key in dictionary) {
+        const newUserKey = dictionary[key]
+        // 数据处理-第二次
+        if (newUserKey === 'timeOfEntry' || newUserKey === 'correctionTime') {
+          // 日期处理
+          arr.push(formatDate(obj[newUserKey]))
+        } else if (newUserKey === 'formOfEmployment') {
+          // 枚举数据
+          const item = EmployeeEnum.hireType.find(item => item.id === obj[newUserKey])
+          item ? arr.push(item.value) : '未知'
+        } else {
+          arr.push(obj[newUserKey])
+        }
+      }
+      return arr
+    },
+    // 删除员工
+    async deleteEmployeeFn(id) {
+      await this.$confirm('确认删除吗？')
+      await deleteEmployeeAPI(id)
+      this.getEmployeeList()
     },
     // 新增员工
     addEmployeeFn() {
-      this.addEmployeeDialog = true
+      this.isShowDialog = true
     },
-    // 获取部门列表
-    async getDepartment() {
-      const deptsRes = await getDepartmentListAPI()
-      const { depts } = deptsRes.data
-      const deptsFlat = depts.filter(item => item.pid !== '-1')
-      this.depts = dataToTree(deptsFlat, '')
+    closeDialogFn() {
+      this.isShowDialog = false
     },
-    handleNodeClick(data) {
-      this.formData = { ...this.formData, departmentName: data.name }
+    updateEmployeeListFn() {
+      this.getEmployeeList()
     },
-    treeBlurFn() {
-      setTimeout(() => {
-        this.isShowTree = 'none'
-      }, 500)
-    },
-    async onOk() {
-      await this.$refs.addEmployee.validate()
-      await addEmployeesAPI(this.formData)
-      this.$message.success('新增成功')
-      this.addEmployeeDialog = false
-      this.getEmployeeList(this.pagesetting)
-    },
-    onCancle() {
-      this.$refs.addEmployee.resetFields()
-      this.formData = {
-        username: '',
-        mobile: '',
-        formOfEmployment: '',
-        workNumber: '',
-        departmentName: '',
-        timeOfEntry: '', // 入职时间
-        correctionTime: '' // 转正时间
+    // 渲染二维码
+    showEWMFn(imgSrc) {
+      if (imgSrc) {
+        this.isShowEWM = true
+        this.$nextTick(() => {
+          QRCode.toCanvas(this.$refs.qrcode, imgSrc, { width: 300 })
+        })
       }
-      this.addEmployeeDialog = false
     },
-    // 删除
-    async delEmployeeFn(id) {
-      await this.$confirm('是否删除该员工？')
-      await delEmployeesAPI(id)
-      this.$message.success('删除成功')
-      this.getEmployeeList(this.pagesetting)
+    // 设置角色
+    async assignRoleFn(id) {
+      await this.$refs.assignRole.getCheckedListFn(id)
+      this.isShowRole = true
+    },
+    closeRoleDialogFn() {
+      this.isShowRole = false
     }
   }
 }
 </script>
 
-<style scoped lang="scss">
-::v-deep{
-.el-tree{
-  margin-top: 5px;
-}
+<style lang="scss" scoped>
+.staffPhoto{
+  width: 180px;
+  height: 120px;
+  object-fit: cover;
 }
 </style>
+

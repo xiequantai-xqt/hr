@@ -3,80 +3,83 @@
     <div class="app-container">
       <el-card class="tree-card">
         <!-- 用一个行列布局 -->
-        <TreeTools @toggleAddDialog="toggleAddDialogFn" />
+        <TreeTools :is-company="true" :node-data="companyInfo" />
         <hr>
-        <el-tree :data="depts" :props="{label:'name'}" :default-expand-all="true">
+        <!-- 分割线以下是部门树形数据 -->
+        <el-tree :data="depts" default-expand-all :props="{label:'name'}">
           <template #default="{data}">
             <TreeTools
               :node-data="data"
-              :is-company="true"
-              @updateDep="getDepartment"
-              @toggleAddDialog="toggleAddDialogFn"
-              @passNodeData="passNodeDataFn"
-              @editDept="editDeptFn"
+              @addDepartment="addDptFn"
+              @updateDepartment="updateDepartmentFn"
+              @delDepartment="delDepartmentFn"
             />
           </template>
         </el-tree>
       </el-card>
+      <AddDept
+        ref="addDept"
+        :is-show-dialog.sync="isShowDialog"
+        :node-data="tempDepartment"
+        @updateDepartments="updateDepartmentsFn"
+      />
     </div>
-    <AddDept
-      ref="addDept"
-      :add-dept-dialog="addDeptDialog"
-      :node-data="nodeData"
-      @toggleAddDialog="toggleAddDialogFn"
-      @updateDep="getDepartment"
-    />
   </div>
 </template>
 
 <script>
-import { getDepartmentListAPI } from '@/api/departments'
+import { getDepartmentList } from '@/api/departments'
 import TreeTools from './components/tree-tools.vue'
-import { dataToTree } from '@/utils'
+import { listToTreeData } from '@/utils'
 import AddDept from './components/add-dept.vue'
 export default {
   components: { TreeTools, AddDept },
   data() {
     return {
       depts: [],
-      addDeptDialog: false, // 新增部门弹窗
-      nodeData: ''
+      companyInfo: {},
+      isShowDialog: false,
+      tempDepartment: {}
     }
   },
-  created() {
-    this.getDepartment()
+  async created() {
+    const res = await getDepartmentList()
+    this.depts = listToTreeData(res.depts, '')
+    this.companyInfo = {
+      name: res.companyName,
+      manager: '负责人'
+    }
   },
   methods: {
-    async getDepartment() {
-      const deptsRes = await getDepartmentListAPI()
-      const { depts } = deptsRes.data
-      const deptsFlat = depts.filter(item => item.pid !== '-1')
-      this.depts = dataToTree(deptsFlat, '')
+    // 新增部门
+    addDptFn(node) {
+      this.tempDepartment = node
+      this.isShowDialog = true
     },
-    toggleAddDialogFn(value) {
-      this.addDeptDialog = value
+    // 新增后更新页面
+    async updateDepartmentsFn() {
+      const res = await getDepartmentList()
+      this.depts = listToTreeData(res.depts, '')
     },
-    passNodeDataFn(nodeData) {
-      this.nodeData = nodeData
+    // 编辑
+    updateDepartmentFn(nodeData) {
+      this.tempDepartment = nodeData
+      this.$refs.addDept.getDepartmentDetail(nodeData.id)
+      this.isShowDialog = true
     },
-    editDeptFn() {
-      this.addDeptDialog = true
-      // 回显
-      this.$refs.addDept.getDeptDetailFn(this.nodeData.id)
+    // 删除后更新页面
+    async delDepartmentFn() {
+      const res = await getDepartmentList()
+      this.depts = listToTreeData(res.depts, '')
     }
   }
 }
 </script>
 
-<style lang="scss" scoped>
-.dashboard-container{
-  .app-container{
-    .tree-card {
-      padding: 30px  140px;
-      font-size:14px;
-    }
-  }
+<style>
+.tree-card {
+  padding: 30px  140px;
+  font-size:14px;
 }
-
 </style>
 

@@ -14,9 +14,6 @@ import salarys from './modules/salarys'
 import setting from './modules/setting'
 import social from './modules/social'
 
-/* Router Modules */
-// import componentsRouter from './modules/components'
-
 /**
  * Note: sub-menu only appear when route children.length >= 1
  * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
@@ -31,8 +28,6 @@ import social from './modules/social'
     roles: ['admin','editor']    control the page roles (you can set multiple roles)
     title: 'title'               the name show in sidebar and breadcrumb (recommend set)
     icon: 'svg-name'/'el-icon-x' the icon show in the sidebar
-    noCache: true                if set true, the page will no be cached(default is false)
-    affix: true                  if set true, the tag will affix in the tags-view
     breadcrumb: false            if set false, the item will hidden in breadcrumb(default is true)
     activeMenu: '/example/list'  if set path, the sidebar will highlight the path you set
   }
@@ -51,45 +46,45 @@ export const constantRoutes = [
     hidden: true
   },
   {
-    path: '/',
-    component: Layout,
-    redirect: '/dashboard',
-    children: [
-      {
-        path: 'dashboard',
-        component: () => import('@/views/dashboard/index'),
-        name: 'Dashboard',
-        meta: { title: 'Dashboard', icon: 'dashboard', affix: true }
-      }
-    ]
+    path: '/test',
+    component: () => import('@/views/test/index.vue'),
+    hidden: true
+  },
+
+  {
+    path: '/404',
+    component: () => import('@/views/404'),
+    hidden: true
   },
   {
     path: '/import',
     component: Layout,
+    hidden: true,
     children: [
       {
-        path: '/import',
-        component: () => import('@/views/import/index')
+        path: '',
+        component: () => import('@/views/import')
       }
     ]
   },
-  {
-    path: '/404',
-    component: () => import('@/views/404/index.vue'),
-    hidden: true
-  },
-  { path: '*', redirect: '/404', hidden: true }
-]
 
-/**
- * asyncRoutes
- * the routes that need to be dynamically loaded based on user roles
- */
+  {
+    path: '/',
+    component: Layout,
+    name: 'dashboard',
+    redirect: '/dashboard',
+    children: [{
+      path: 'dashboard',
+      name: 'Dashboard',
+      component: () => import('@/views/dashboard/index'),
+      meta: { title: 'Dashboard', icon: 'dashboard' }
+    }]
+  }
+  // 404 page must be placed at the end !!!
+  // { path: '*', redirect: '/404', hidden: true }
+]
 // 动态路由
 export const asyncRoutes = [
-
-  /** when your routing map is too long, you can split it into small modules **/
-  // componentsRouter,
   approvals,
   attendances,
   departments,
@@ -101,7 +96,8 @@ export const asyncRoutes = [
 ]
 
 const createRouter = () => new Router({
-  // mode: 'history', // require service support
+  mode: 'history', // require service support
+  base: 'admin',
   scrollBehavior: () => ({ y: 0 }),
   routes: [...constantRoutes, ...asyncRoutes]
 })

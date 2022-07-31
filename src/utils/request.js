@@ -1,41 +1,51 @@
 import router from '@/router'
 import store from '@/store'
 import axios from 'axios'
+import { Message } from 'element-ui'
 
-// create an axios instance
-const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
-  // withCredentials: true, // send cookies when cross-domain requests
-  timeout: 10000 // request timeout
+const instance = axios.create({
+  baseURL: process.env.VUE_APP_BASE_API,
+  timeout: 10000
 })
 
 // 请求拦截器
-service.interceptors.request.use(
-  config => {
-    if (store.state.user.token) {
-      config.headers.Authorization = `Bearer ${store.state.user.token}`
+instance.interceptors.request.use(
+  function(config) {
+    if (store.getters.token) {
+      config.headers.Authorization = `Bearer ${store.getters.token}`
     }
     return config
   },
-  error => {
+  function(error) {
     return Promise.reject(error)
   }
 )
 
 // 响应拦截器
-service.interceptors.response.use(
-  response => {
-    const res = response.data
-    return res
+instance.interceptors.response.use(
+  // 网络层面成功
+  function(response) {
+    const { success, message } = response.data
+    if (success) {
+      // 数据层面成功
+      return response.data.data
+    } else {
+      // 数据层面失败
+      Message.error(message)
+      return Promise.reject(new Error(message))
+    }
   },
-  error => {
-    console.log('error', error)
+  // 网络层面失败
+  function(error) {
+    console.log('网络层面失败')
+    console.dir(error)
     if (error.response && error.response.data.code === 10002) {
-      store.dispatch('user/logoutAsync')
+      store.dispatch('user/logout')
       router.push('/login')
     }
+    Message.error(error)
     return Promise.reject(error)
   }
 )
 
-export default service
+export default instance

@@ -11,7 +11,8 @@
 </template>
 
 <script>
-import XLSX from 'xlsx'
+// import XLSX from 'xlsx'
+import * as XLSX from 'xlsx/xlsx.mjs'
 
 export default {
   props: {

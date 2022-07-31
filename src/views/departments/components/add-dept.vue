@@ -1,17 +1,20 @@
 <template>
-  <el-dialog title="新增部门" :visible="addDeptDialog" @close="cancleFn">
-    <el-form ref="addDept" label-width="120px" :model="formData" :rules="rules">
+  <el-dialog
+    title="新增部门"
+    :visible="isShowDialog"
+    @close="btnClose"
+  >
+    <!-- 表单组件  el-form   label-width设置label的宽度   -->
+    <!-- 匿名插槽 -->
+    <el-form ref="formData" label-width="120px" :model="formData" :rules="rules">
       <el-form-item label="部门名称" prop="name">
-        <el-input v-model="formData.name" style="width:80%" />
+        <el-input v-model="formData.name" style="width:80%" placeholder="1-50个字符" />
       </el-form-item>
       <el-form-item label="部门编码" prop="code">
-        <el-input v-model="formData.code" style="width:80%" />
+        <el-input v-model="formData.code" style="width:80%" placeholder="1-50个字符" />
       </el-form-item>
-      <el-form-item label="介绍" prop="introduce">
-        <el-input v-model="formData.introduce" style="width:80%" />
-      </el-form-item>
-      <el-form-item label="负责人名称" prop="manager">
-        <el-select v-model="formData.manager" placeholder="请选择负责人" style="width:80%" @blur="validateManger">
+      <el-form-item label="部门负责人" prop="manager">
+        <el-select v-model="formData.manager" style="width:80%" placeholder="请选择" @blur="checkManager">
           <el-option
             v-for="item in employeeList"
             :key="item.id"
@@ -20,145 +23,152 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="部门介绍" prop="introduce">
+        <el-input v-model="formData.introduce" style="width:80%" placeholder="1-300个字符" type="textarea" :rows="3" />
+      </el-form-item>
     </el-form>
-    <div slot="footer">
-      <el-button @click="cancleFn">取 消</el-button>
-      <el-button type="primary" @click="submitFn">确 定</el-button>
-    </div>
+    <!-- el-dialog有专门放置底部操作栏的 插槽  具名插槽 -->
+    <el-row slot="footer" type="flex" justify="center">
+      <!-- 列被分为24 -->
+      <el-col :span="6">
+        <el-button type="primary" size="small" @click="onOk">确定</el-button>
+        <el-button size="small" @click="onCancle">取消</el-button>
+      </el-col>
+    </el-row>
   </el-dialog>
 </template>
 
 <script>
-import { getEmployeeListAPI } from '@/api/user'
-import {
-  addDepartmentAPI,
-  getDepartmentListAPI,
-  getDeptDetailByIdAPI,
-  updateDeptAPI
-} from '@/api/departments'
-import { dataToTree } from '@/utils'
+import { getEmployeeSimple } from '@/api/employee'
+import { addDepartment, getDepartmentDetail, getDepartmentList, updateDepartment } from '@/api/departments'
+import { Message } from 'element-ui'
+
 export default {
   props: {
-    addDeptDialog: {
-      type: Boolean
+    isShowDialog: {
+      type: Boolean,
+      default: false
     },
-    // eslint-disable-next-line vue/require-default-prop, vue/require-prop-types
-    nodeData: {}
+    nodeData: {
+      type: Object,
+      required: true
+    }
   },
   data() {
-    // 同部门下，子部门不能重名
-    const validateName = async(rule, value, callback) => {
-      const res = await getDepartmentListAPI()
-      const { depts } = res.data
-      const deptsFlat = depts.filter(item => item.pid !== '-1')
-      this.depts = dataToTree(deptsFlat, '')
+    const checkRepeatCode = async(rule, val, callback) => {
+      const { depts } = await getDepartmentList()
       let isRepeat
-      if (this.nodeData.id) {
+      if (this.formData.id) {
         // 编辑
-        const parDepts = []
-        for (let i = 0; i < deptsFlat.length; i++) {
-          if (deptsFlat[i].pid === this.nodeData.pid) {
-            parDepts.push(deptsFlat[i])
-          }
-        }
-        isRepeat = parDepts.some(i => i.name === value && i.code !== this.nodeData.code)
+        isRepeat = depts.some(v => v.code === val && v.id !== this.formData.id)
       } else {
         // 新增
-        const childrenDepts = this.depts.find(item => item.id === this.nodeData.id).children
-        isRepeat = childrenDepts.some(i => i.name === value)
+        isRepeat = depts.some(v => v.code === val)
       }
-
       if (isRepeat) {
-        callback(new Error('该部门名称已被占用'))
+        callback(new Error('部门编码必须唯一'))
       } else {
         callback()
       }
     }
-    // 全集团的code不能重复
-    const validateCode = async(rule, value, callback) => {
-      // 获取全集团的扁平化数据
-      const res = await getDepartmentListAPI()
-      const { depts } = res.data
+    const checkRepeatName = async(rule, value, callback) => {
+      // 1. 筛选出当前部门下面所有子部门的列表
+      const { depts } = await getDepartmentList()
       let isRepeat
-      if (this.nodeData.id) {
+      if (this.formData.id) {
         // 编辑
-        isRepeat = depts.some(item => item.code === value && item.id !== this.nodeData.id)
+        const res = depts.filter(item => item.pid === this.nodeData.pid)
+        isRepeat = res.some(item => item.name === value && item.id !== this.nodeData.id)
       } else {
-        isRepeat = depts.some(item => item.code === value)
+        // 新增
+        const res = depts.filter(item => item.pid === this.nodeData.id)
+        isRepeat = res.some(item => item.name === value)
       }
       if (isRepeat) {
-        callback(new Error('全集团编码保证唯一性'))
+        callback(new Error('名字不允许重复'))
       } else {
         callback()
       }
     }
     return {
+      // 表单数据
       formData: {
-        code: '',
-        introduce: '',
-        manager: '',
-        name: ''
+        code: '', // 部门编码
+        introduce: '', // 介绍
+        manager: '', // 负责人名称
+        name: ''// 部门名称
       },
-      employeeList: [], // 员工列表信息
-      depts: [],
+      // 定义校验规则
       rules: {
-        code: [
-          { required: true, message: '此项不能为空', trigger: 'blur' },
-          { validator: validateCode, trigger: 'blur' }
+        name: [
+          { required: true, message: '部门名称不能为空', trigger: 'blur' },
+          { min: 1, max: 50, message: '部门名称要求1-50个字符', trigger: 'blur' },
+          { validator: checkRepeatName, trigger: 'blur' }
         ],
-        introduce: [
-          { required: true, message: '此项不能为空', trigger: 'blur' }
+        code: [
+          { required: true, message: '部门编码不能为空', trigger: 'blur' },
+          { min: 1, max: 50, message: '部门编码要求1-50个字符', trigger: 'blur' },
+          { validator: checkRepeatCode, trigger: 'blur' }
         ],
         manager: [
-          { required: true, message: '此项不能为空', trigger: 'blur' }
+          { required: true, message: '部门负责人不能为空', trigger: 'blur' }
         ],
-        name: [
-          { required: true, message: '此项不能为空', trigger: 'blur' },
-          { min: 2, max: 10, message: '部门名称为2-10个字符', trigger: 'blur' },
-          { validator: validateName, trigger: 'blur' }
+        introduce: [
+          { required: true, message: '部门介绍不能为空', trigger: 'blur' },
+          { trigger: 'blur', min: 1, max: 300, message: '部门介绍要求1-50个字符' }
         ]
-      }
+      },
+      // 员工简单名单
+      employeeList: []
     }
   },
-  created() {
-    this.getEmployeeList()
+  async created() {
+    const res = await getEmployeeSimple()
+    // console.log(res) // id username
+    this.employeeList = res
   },
   methods: {
-    async cancleFn() {
-      await this.$refs.addDept.resetFields()
-      this.formData = {
-        code: '',
-        introduce: '',
-        manager: '',
-        name: ''
-      }
-      this.$emit('toggleAddDialog', false)
-    },
-    async submitFn() {
-      await this.$refs.addDept.validate()
-      if (this.nodeData.id) {
+    async onOk() {
+      // 1. 触发校验表单
+      await this.$refs.formData.validate()
+      // 2. 发请求
+      if (this.formData.id) {
         // 编辑
-        await updateDeptAPI({ ...this.formData })
+        await updateDepartment(this.formData)
       } else {
-        // 增加
-        await addDepartmentAPI({ ...this.formData, pid: this.nodeData.id })
-        this.$message.success('新增成功')
+        // 新增
+        await addDepartment({ ...this.formData, pid: this.nodeData.id })
       }
-      this.$emit('toggleAddDialog', false)
-      this.$emit('updateDep')
+      // 3. 通知用户
+      Message.success('新增成功')
+      // 4. 关闭弹窗
+      this.$emit('update:isShowDialog', false)
+      // 5. 通知父组件，更新页面
+      this.$emit('updateDepartments')
     },
-    async getEmployeeList() {
-      const employeeList = await getEmployeeListAPI()
-      this.employeeList = employeeList.data.rows
+    onCancle() {
+      // 重置表单
+      this.formData = {
+        code: '', // 部门编码
+        introduce: '', // 介绍
+        manager: '', // 负责人名称
+        name: ''// 部门名称
+      }
+      this.$refs.formData.resetFields()
+      // 关闭弹窗
+      this.$emit('update:isShowDialog', false)
     },
-    validateManger() {
+    btnClose() {
+      this.onCancle()
+    },
+    async getDepartmentDetail(id) {
+      const res = await getDepartmentDetail(id)
+      this.formData = res
+    },
+    checkManager() {
       setTimeout(() => {
-        this.$refs.addDept.validateField('manager')
-      }, 500)
-    },
-    async getDeptDetailFn(id) {
-      const res = await getDeptDetailByIdAPI(id)
-      this.formData = res.data
+        this.$refs.formData.validateField('manager')
+      }, 100)
     }
   }
 }

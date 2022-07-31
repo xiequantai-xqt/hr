@@ -19,7 +19,7 @@ export default {
   },
   data() {
     return {
-      title: 'Vue Element Admin',
+      title: 'Vue Admin Template',
       logo: 'https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png'
     }
   }
@@ -41,7 +41,6 @@ export default {
   width: 100%;
   height: 50px;
   line-height: 50px;
-  // background: #2b2f3a;
   text-align: center;
   overflow: hidden;
 
@@ -50,7 +49,9 @@ export default {
     width: 100%;
 
     & .sidebar-logo {
-       width: 140px;
+      // 大图
+      width: 140px;
+      height: 32px;
       vertical-align: middle;
       margin-right: 12px;
     }
@@ -67,13 +68,13 @@ export default {
     }
   }
 
-    &.collapse {
+  &.collapse {
     .sidebar-logo {
+      // 小图
       margin-right: 0px;
       width: 32px;
       height: 32px;
     }
   }
-// 小图样式
 }
 </style>

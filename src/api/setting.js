@@ -1,9 +1,15 @@
 import request from '@/utils/request'
 
-// 渲染角色列表信息
-export function getRoleListAPI(params) {
+// 获取公司的信息
+export function getCompanyInfo(id) {
   return request({
-    url: `/sys/role`,
+    url: `/company/${id}`
+  })
+}
+// 获取角色列表
+export function getRoleList(params) {
+  return request({
+    url: '/sys/role',
     params
   })
 }
@@ -17,13 +23,13 @@ export function delRoleAPI(id) {
 // 新增角色
 export function addRoleAPI(data) {
   return request({
-    url: `/sys/role`,
+    url: '/sys/role',
     method: 'post',
     data
   })
 }
 // 获取角色详情
-export function getRoleDetailAPI(id) {
+export function getRoleDetailByIdAPI(id) {
   return request({
     url: `/sys/role/${id}`
   })
@@ -32,6 +38,14 @@ export function getRoleDetailAPI(id) {
 export function updateRoleAPI(data) {
   return request({
     url: `/sys/role/${data.id}`,
+    method: 'put',
+    data
+  })
+}
+// 给角色分配权限
+export function updateAssignPermAPI(data) {
+  return request({
+    url: '/sys/role/assignPrem',
     method: 'put',
     data
   })

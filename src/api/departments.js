@@ -1,34 +1,34 @@
 import request from '@/utils/request'
 
-// 获取企业部门列表
-export function getDepartmentListAPI() {
+// 获取组织架构部门
+export function getDepartmentList() {
   return request({
-    url: `/company/department`
+    url: '/company/department'
   })
 }
 // 删除部门
-export function delDepartmentAPI(id) {
+export function delDepartment(id) {
   return request({
     url: `/company/department/${id}`,
-    method: 'delete'
+    method: 'DELETE'
   })
 }
 // 新增部门
-export function addDepartmentAPI(data) {
+export function addDepartment(data) {
   return request({
-    url: `/company/department`,
+    url: '/company/department',
     method: 'post',
     data
   })
 }
-// 根据id获取部门详情
-export function getDeptDetailByIdAPI(id) {
+// 查看部门详情
+export function getDepartmentDetail(id) {
   return request({
     url: `/company/department/${id}`
   })
 }
-// 根据id修改部门详情
-export function updateDeptAPI(data) {
+// 修改部门
+export function updateDepartment(data) {
   return request({
     url: `/company/department/${data.id}`,
     method: 'put',

@@ -1,13 +1,6 @@
 <template>
   <div class="login-container">
-    <el-form
-      ref="loginForm"
-      :model="loginForm"
-      :rules="loginRules"
-      class="login-form"
-      auto-complete="on"
-      label-position="left"
-    >
+    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
 
       <!-- 放置标题图片 @是设置的别名-->
       <div class="title-container">
@@ -63,6 +56,7 @@
 </template>
 
 <script>
+import { Message } from 'element-ui'
 
 export default {
   name: 'Login',
@@ -70,16 +64,16 @@ export default {
     return {
       loginForm: {
         // 02是管理员账号
-        mobile: '13800000002',
+        mobile: '13800000003',
         password: '123456'
       },
       loginRules: {
         mobile: [
-          { required: true, message: '此项为必填项', trigger: 'blur' }
+          { required: true, message: '手机号不能为空', trigger: 'blur' }
         ],
         password: [
-          { required: true, message: '此项为必填项', trigger: 'blur' },
-          { min: 2, max: 9, message: '长度在 2 到 9 个字符', trigger: 'blur' }
+          { required: true, trigger: 'blur' },
+          { min: 6, max: 12, message: '密码必须在6-12位之间', trigger: 'blur' }
         ]
       },
       loading: false,
@@ -95,8 +89,6 @@ export default {
       immediate: true
     }
   },
-  created() {
-  },
   methods: {
     showPwd() {
       if (this.passwordType === 'password') {
@@ -110,9 +102,13 @@ export default {
     },
     // 登录
     async handleLogin() {
+      // 1. 校验表单
       await this.$refs.loginForm.validate()
-      await this.$store.dispatch('user/getTokenAsync', this.loginForm)
-      this.$message.success('登录成功')
+      // 2. 调用action，发送请求
+      await this.$store.dispatch('user/login', this.loginForm)
+      // 3. 提示用户
+      Message.success('登录成功')
+      // 4. 跳转页面
       this.$router.push('/')
     }
   }
