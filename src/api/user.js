@@ -14,6 +14,14 @@ export function getUserProfileAPI(id) {
     url: `/sys/user/${id}`
   })
 }
+// 保存员工基本信息
+export function saveUserProfileAPI(data) {
+  return request({
+    url: `/sys/user/${data.id}`,
+    method: 'put',
+    data
+  })
+}
 // 获取员工基本资料（userId）
 export function getUserBaseInfoAPI() {
   return request({
